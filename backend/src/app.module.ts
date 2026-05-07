@@ -28,47 +28,35 @@ import { AuthModule } from './auth/auth.module';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
-        const isProduction = configService.get('NODE_ENV') === 'production';
+        const databaseUrl = configService.get('DATABASE_URL');
 
-        if (isProduction) {
-          const databaseUrl = configService.get('DATABASE_URL');
-
-          if (databaseUrl) {
-            // Parse DATABASE_URL format: postgresql://user:password@host:port/database
-            const url = new URL(databaseUrl);
-            return {
-              type: 'postgres',
-              host: url.hostname,
-              port: parseInt(url.port || '5432', 10),
-              username: url.username,
-              password: url.password,
-              database: url.pathname.slice(1), // Remove leading slash
-              entities: [Unit, Lead, Conversation, StageTransition, AttentionItem, User],
-              synchronize: false,
-              logging: true,
-            };
-          }
-
-          // Fallback to individual variables if DATABASE_URL not set
+        // Use Postgres if DATABASE_URL is set (production with database)
+        if (databaseUrl) {
+          const url = new URL(databaseUrl);
           return {
             type: 'postgres',
-            host: configService.get('DB_HOST'),
-            port: configService.get('DB_PORT'),
-            username: configService.get('DB_USERNAME'),
-            password: configService.get('DB_PASSWORD'),
-            database: configService.get('DB_NAME'),
+            host: url.hostname,
+            port: parseInt(url.port || '5432', 10),
+            username: url.username,
+            password: url.password,
+            database: url.pathname.slice(1),
             entities: [Unit, Lead, Conversation, StageTransition, AttentionItem, User],
-            synchronize: false,
+            synchronize: true,
             logging: false,
+            ssl: { rejectUnauthorized: false },
+            extra: {
+              connectionTimeoutMillis: 10000,
+            },
           };
         }
 
+        // Fallback: SQLite (works in production and development without external DB)
         return {
           type: 'sqlite',
           database: configService.get('DB_PATH') || './orthodontic.db',
           entities: [Unit, Lead, Conversation, StageTransition, AttentionItem, User],
           synchronize: true,
-          logging: true,
+          logging: false,
         };
       },
     }),
