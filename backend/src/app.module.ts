@@ -31,6 +31,25 @@ import { AuthModule } from './auth/auth.module';
         const isProduction = configService.get('NODE_ENV') === 'production';
 
         if (isProduction) {
+          const databaseUrl = configService.get('DATABASE_URL');
+
+          if (databaseUrl) {
+            // Parse DATABASE_URL format: postgresql://user:password@host:port/database
+            const url = new URL(databaseUrl);
+            return {
+              type: 'postgres',
+              host: url.hostname,
+              port: parseInt(url.port || '5432', 10),
+              username: url.username,
+              password: url.password,
+              database: url.pathname.slice(1), // Remove leading slash
+              entities: [Unit, Lead, Conversation, StageTransition, AttentionItem, User],
+              synchronize: false,
+              logging: true,
+            };
+          }
+
+          // Fallback to individual variables if DATABASE_URL not set
           return {
             type: 'postgres',
             host: configService.get('DB_HOST'),
