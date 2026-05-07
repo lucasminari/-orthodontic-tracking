@@ -21,8 +21,10 @@ app.enableCors({
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document);
 
-  const port = process.env.API_PORT ?? 3001;
-  await app.listen(port, () => {
+  const port = process.env.PORT || process.env.API_PORT || 3001;
+  const isProduction = process.env.NODE_ENV === 'production';
+
+  await app.listen(port, isProduction ? '0.0.0.0' : 'localhost', () => {
     console.log(`✓ API rodando em http://localhost:${port}`);
     console.log(`✓ Swagger disponível em http://localhost:${port}/api/docs`);
   });
