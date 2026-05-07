@@ -28,29 +28,8 @@ import { AuthModule } from './auth/auth.module';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
-        const databaseUrl = configService.get('DATABASE_URL');
-
-        // Use Postgres if DATABASE_URL is set (production with database)
-        if (databaseUrl) {
-          const url = new URL(databaseUrl);
-          return {
-            type: 'postgres',
-            host: url.hostname,
-            port: parseInt(url.port || '5432', 10),
-            username: url.username,
-            password: url.password,
-            database: url.pathname.slice(1),
-            entities: [Unit, Lead, Conversation, StageTransition, AttentionItem, User],
-            synchronize: true,
-            logging: false,
-            ssl: { rejectUnauthorized: false },
-            extra: {
-              connectionTimeoutMillis: 10000,
-            },
-          };
-        }
-
-        // Fallback: SQLite (works in production and development without external DB)
+        // Use SQLite in all environments for simpler deployment
+        // Data is ephemeral on Railway (lost on each deploy) but no external DB required
         return {
           type: 'sqlite',
           database: configService.get('DB_PATH') || './orthodontic.db',
