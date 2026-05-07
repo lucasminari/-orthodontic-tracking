@@ -6,10 +6,10 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // Enable CORS
-  app.enableCors({
-    origin: ['http://localhost:3000', 'http://localhost:3002'],
-    credentials: true,
-  });
+app.enableCors({
+  origin: ['http://localhost:3000', 'http://localhost:3002', 'https://orthodontic-tracking.vercel.app'],
+  credentials: true,
+});
 
   const config = new DocumentBuilder()
     .setTitle('OrthoDontic Tracking API')
