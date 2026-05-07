@@ -27,4 +27,6 @@ app.enableCors({
     console.log(`✓ Swagger disponível em http://localhost:${port}/api/docs`);
   });
 }
+
+// CORS configured for Vercel production deployment
 bootstrap();
